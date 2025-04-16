@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <title>Magic Fridge - Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            100: '#1a1d23',
+                            200: '#141519',
+                            300: '#101114',
+                            400: '#0c0d0f',
+                        },
+                        accent: {
+                            green: '#10b981',
+                            red: '#ef4444',
+                            blue: '#3b82f6',
+                            purple: '#8b5cf6',
+                            teal: '#14b8a6',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .recipe-content {
+            white-space: pre-wrap;
+        }
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1d23;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2d3748;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a5568;
+        }
+        /* For Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #2d3748 #1a1d23;
+        }
+    </style>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-dark-100 text-gray-100 font-sans">
+<div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <div class="w-64 bg-dark-200 border-r border-gray-800 flex-shrink-0 hidden md:block">
+        <div class="flex items-center p-4 border-b border-gray-800">
+                <span class="text-xl font-bold flex items-center">
+                    <span class="text-green-500 mr-2">🧊</span> Magic Fridge
+                </span>
+        </div>
+
+        <div class="p-4">
+            <div class="text-xs font-semibold text-gray-400 mb-4 uppercase tracking-wider">Menu</div>
+            <nav>
+                <a th:href="@{/ui/food}" class="flex items-center px-4 py-2.5 text-gray-300 hover:bg-dark-300 rounded-md mb-1 bg-dark-300">
+                    <span class="mr-3">🧑‍🍳</span> Dashboard
+                </a>
+                <a th:href="@{/ui/recipes/list}" class="flex items-center px-4 py-2.5 text-gray-300 hover:bg-dark-300 rounded-md mb-1">
+                    <span class="mr-3">📜</span> Receitas Salvas
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Navigation -->
+        <header class="bg-dark-200 border-b border-gray-800 h-16 flex items-center px-6">
+            <div class="flex items-center text-sm">
+                <span class="text-gray-400">magicfridge</span>
+                <span class="mx-2 text-gray-600">/</span>
+                <span>dashboard</span>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto p-6">
+            <!-- Mensagens de Feedback -->
+            <div th:if="${success}"
+                 class="bg-accent-green bg-opacity-10 border-l-4 border-accent-green text-accent-green p-4 mb-6 rounded-md"
+                 th:text="${success}"></div>
+
+            <div th:if="${error}"
+                 class="bg-accent-red bg-opacity-10 border-l-4 border-accent-red text-accent-red p-4 mb-6 rounded-md"
+                 th:text="${error}"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Column -->
+                <div>
+                    <!-- Formulário de Cadastro -->
+                    <div class="bg-dark-200 rounded-xl border border-gray-800 mb-6 overflow-hidden">
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+                            <h2 class="text-lg font-semibold">➕ Adicionar Ingrediente</h2>
+                        </div>
+                        <div class="p-6">
+                            <form th:action="@{/ui/food/save}" th:object="${foodItem}" method="post">
+                                <input type="hidden" th:field="*{id}">
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-400 mb-1">Nome do Ingrediente</label>
+                                        <input type="text"
+                                               class="w-full rounded-md bg-dark-300 border-gray-700 text-white focus:border-accent-blue focus:ring focus:ring-accent-blue focus:ring-opacity-20"
+                                               th:field="*{nome}" required>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-400 mb-1">Categoria</label>
+                                        <select class="w-full rounded-md bg-dark-300 border-gray-700 text-white focus:border-accent-blue focus:ring focus:ring-accent-blue focus:ring-opacity-20"
+                                                th:field="*{categoria}">
+                                            <option th:each="cat : ${categories}"
+                                                    th:value="${cat}"
+                                                    th:text="${cat}"></option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-400 mb-1">Quantidade</label>
+                                        <input type="number"
+                                               class="w-full rounded-md bg-dark-300 border-gray-700 text-white focus:border-accent-blue focus:ring focus:ring-accent-blue focus:ring-opacity-20"
+                                               th:field="*{quantidade}" min="1" required>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-400 mb-1">Data de Validade</label>
+                                        <input type="date"
+                                               class="w-full rounded-md bg-dark-300 border-gray-700 text-white focus:border-accent-blue focus:ring focus:ring-accent-blue focus:ring-opacity-20"
+                                               th:field="*{validade}" required>
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 flex items-center gap-3">
+                                    <button type="submit"
+                                            class="bg-accent-blue hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                                        Salvar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Ingredientes -->
+                    <div class="bg-dark-200 rounded-xl border border-gray-800 overflow-hidden mb-6">
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+                            <h2 class="text-lg font-semibold flex items-center">
+                                <span class="mr-2">📦</span> Seus Ingredientes
+                            </h2>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div th:each="item : ${foodItems}" class="bg-dark-300 rounded-lg p-4 border border-gray-700 flex flex-col">
+                                    <div class="font-medium text-lg" th:text="${item.nome}">Nome do Ingrediente</div>
+                                    <div class="text-sm text-gray-400 mt-1 mb-3">
+                                        <span th:text="${item.quantidade}">1</span> unidade(s) •
+                                        <span th:text="${item.categoria}">Categoria</span> •
+                                        Validade: <span th:text="${#temporals.format(item.validade, 'dd/MM/yyyy')}">01/01/2025</span>
+                                    </div>
+                                    <div class="flex gap-2 mt-auto">
+                                        <a th:href="@{/ui/food/edit/{id}(id=${item.id})}"
+                                           class="bg-accent-blue bg-opacity-80 hover:bg-opacity-100 text-white font-medium py-1 px-3 rounded text-xs transition-colors">
+                                            Editar
+                                        </a>
+                                        <button
+                                                onclick="confirmDelete(this)"
+                                                th:data-id="${item.id}"
+                                                th:data-name="${item.nome}"
+                                                class="bg-accent-red bg-opacity-80 hover:bg-opacity-100 text-white font-medium py-1 px-3 rounded text-xs transition-colors">
+                                            Deletar
+                                        </button>
+                                    </div>
+                                </div>
+                                <div th:if="${#lists.isEmpty(foodItems)}" class="col-span-full p-8 text-center text-gray-500 italic">
+                                    Nenhum ingrediente cadastrado. Adicione seu primeiro ingrediente!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div>
+                    <!-- Gerador de Receitas -->
+                    <div class="bg-dark-200 rounded-xl border border-gray-800 mb-6 overflow-hidden">
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+                            <h2 class="text-lg font-semibold flex items-center">
+                                <span class="mr-2">🍳</span> Gerar Receita
+                            </h2>
+                        </div>
+                        <div class="p-6">
+                            <form th:action="@{/ui/food/generate-recipe-with-details}" method="post">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-400 mb-1">Detalhes Adicionais (opcional)</label>
+                                    <textarea
+                                            name="recipeDetails"
+                                            rows="4"
+                                            class="w-full rounded-md bg-dark-300 border-gray-700 text-white focus:border-accent-blue focus:ring focus:ring-accent-blue focus:ring-opacity-20"
+                                            placeholder="Adicione detalhes específicos para sua receita, como preferências, restrições alimentares, tipo de culinária, etc."></textarea>
+                                </div>
+
+                                <button type="submit"
+                                        class="w-full bg-accent-green hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded-md transition-colors flex items-center justify-center">
+                                    <span class="mr-2">🍳</span> Gerar Receita com Ingredientes Disponíveis
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Receita Gerada -->
+                    <div th:if="${recipe}" class="bg-dark-200 rounded-xl border border-gray-800 overflow-hidden">
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+                            <h2 class="text-lg font-semibold flex items-center">
+                                <span class="mr-2">📜</span> Receita Gerada
+                            </h2>
+                            <form th:action="@{/ui/recipes/save}" method="post" class="ml-auto">
+                                <input type="hidden" name="content" th:value="${recipe}">
+                                <button type="submit" class="bg-accent-green hover:bg-opacity-90 text-white font-medium py-1 px-3 rounded text-sm transition-colors">
+                                    Salvar Receita
+                                </button>
+                            </form>
+                        </div>
+                        <div class="p-6">
+                            <div class="bg-dark-300 border-l-4 border-accent-green p-5 rounded-md recipe-content text-gray-300 max-h-[500px] overflow-y-auto">
+                                <p th:text="${recipe}"></p>
+                            </div>
+
+                            <div class="mt-4 flex justify-end">
+                                <button onclick="printRecipe()" class="bg-accent-blue hover:bg-opacity-90 text-white font-medium py-1 px-3 rounded text-sm transition-colors">
+                                    Imprimir Receita
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal de confirmação de exclusão -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-dark-200 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700 shadow-xl">
+        <h3 class="text-xl font-semibold mb-4">Confirmar exclusão</h3>
+        <p class="text-gray-300 mb-6">Tem certeza que deseja excluir o ingrediente <span id="itemName" class="font-semibold"></span>?</p>
+        <div class="flex justify-end gap-3">
+            <button onclick="closeDeleteModal()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md">
+                Cancelar
+            </button>
+            <a href="#" id="confirmDeleteBtn" class="bg-accent-red hover:bg-opacity-90 text-white px-4 py-2 rounded-md">
+                Confirmar
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmDelete(button) {
+        const id = button.getAttribute('data-id');
+        const name = button.getAttribute('data-name');
+
+        document.getElementById('itemName').textContent = name;
+        document.getElementById('confirmDeleteBtn').href = `/ui/food/delete/${id}`;
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+
+    function printRecipe() {
+        const recipeContent = document.querySelector('.recipe-content').innerText;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>Receita Magic Fridge</title>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+                    h1 { text-align: center; margin-bottom: 20px; }
+                    pre { white-space: pre-wrap; font-family: inherit; }
+                </style>
+            </head>
+            <body>
+                <h1>Receita Magic Fridge</h1>
+                <pre>${recipeContent}</pre>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    }
+
+    // Fechar modal ao clicar fora dele
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDeleteModal();
+        }
+    });
+</script>
+</body>
+</html>
